@@ -1,65 +1,80 @@
-# Paystack Payment Gateway for XenForo 2.2
+# Paystack Payment Gateway for XenForo 2.3
 
-> **Developed by [Theophilus Adegbohungbe](https://theophilusadegbohungbe.com)**
-> Copyright (c) 2026 Theophilus Adegbohungbe. All rights reserved.
-> Unauthorized redistribution, resale or modification without explicit written permission is strictly prohibited.
+Developed by **Theophilus Adegbohungbe** — [theophilusadegbohungbe.com](https://theophilusadegbohungbe.com)  
+Copyright (c) 2026 Theophilus Adegbohungbe.
 
----
-
-A native XenForo 2.2 payment provider addon that integrates [Paystack](https://paystack.com) for accepting payments on your forum — supporting User Upgrades, Resource Manager purchases, and any other XenForo purchasable.
+This software is released under the **GNU General Public License v3.0**.
 
 ---
 
 ## Features
 
+- Full integration with Paystack payment API
 - Separate Live and Test API key fields with toggle switching
-- Key prefix validation — rejects wrong key types per mode (e.g. `sk_test_` in live mode)
+- Live/Test key prefix validation (prevents using wrong keys per mode)
 - Secure webhook support with HMAC SHA-512 signature verification
 - Paystack IP whitelisting for extra webhook security
-- Instant `200 OK` webhook acknowledgement per official Paystack docs
-- Rich product metadata and `custom_fields` sent to Paystack dashboard
-- Callback URL and Webhook URL with one-click copy buttons in Admin CP
-- Full payment logging visible in XenForo Admin CP
-- Compatible with XenForo 2.2+
+- Instant `200 OK` webhook acknowledgement per Paystack official docs
+- Rich product metadata sent to Paystack dashboard (`custom_fields`)
+- Callback URL and Webhook URL displayed with one-click copy buttons
+- Complete payment logging in XenForo admin panel
+- Compatible with XenForo User Upgrades and Resource Manager purchases
+- Test mode for safe development and testing
 
 ---
 
 ## Requirements
 
-- XenForo 2.2 or higher
+- XenForo 2.3 or higher
 - PHP 7.2 or higher
 - cURL extension enabled
-- Valid [Paystack](https://paystack.com) account
+- Valid Paystack account ([paystack.com](https://paystack.com))
 
 ---
 
 ## Installation
 
-1. Upload the `TheophilusA` folder into your XenForo `src/addons/` directory:
+1. Upload the `TheophilusA` folder to your XenForo `src/addons/` directory:
    ```
    src/addons/TheophilusA/Paystack/
    ```
 2. Go to **Admin CP > Add-ons**
-3. Click **Install/Upgrade from File** and follow the prompts
+3. Click **Install/Upgrade from File** and select the addon
+4. Follow the on-screen prompts to complete installation
 
 ---
 
 ## Configuration
 
-### API Keys
-Go to **Admin CP > Setup > Payment profiles**, add a new profile and select **Paystack**.
+### 1. Get Your API Keys
+- Log in to your [Paystack Dashboard](https://dashboard.paystack.com/#/settings/developers)
+- Copy your **Live Secret Key** (`sk_live_...`), **Live Public Key** (`pk_live_...`)
+- Copy your **Test Secret Key** (`sk_test_...`), **Test Public Key** (`pk_test_...`)
 
-- **Live Mode** — enter `sk_live_...` and `pk_live_...` keys
-- **Test Mode** — enable the toggle and enter `sk_test_...` and `pk_test_...` keys
+### 2. Create a Payment Profile
+1. Go to **Admin CP > Setup > Payment profiles**
+2. Click **Add payment profile** and select **Paystack**
+3. Enter a **Title** (e.g. "Credit/Debit Card") and **Display title** (e.g. "Pay with Paystack")
+4. Toggle **Test Mode** on or off:
+   - **Test Mode ON** — enter your Test Secret Key and Test Public Key
+   - **Test Mode OFF** — enter your Live Secret Key and Live Public Key
+5. Click **Save**
 
-### Webhook Setup
-Copy the **Webhook URL** shown in the payment profile and add it in your [Paystack Dashboard > Settings > Webhooks](https://dashboard.paystack.com/#/settings/webhooks):
+> The addon validates that key prefixes match the selected mode — e.g. it will reject a `sk_test_` key if Live mode is selected.
 
-```
-https://yoursite.com/payment_callback.php?_xfProvider=paystack&type=webhook
-```
+### 3. Set Up Webhooks (Strongly Recommended)
+Webhooks ensure payments are fulfilled even if a user closes their browser after paying on Paystack.
 
-The addon handles signature verification, IP whitelisting, and instant acknowledgement automatically.
+1. Go to [Paystack Dashboard > Settings > Webhooks](https://dashboard.paystack.com/#/settings/webhooks)
+2. Add the **Webhook URL** displayed in your payment profile settings:
+   ```
+   https://yoursite.com/payment_callback.php?_xfProvider=paystack&type=webhook
+   ```
+3. Save the webhook in your Paystack dashboard
+4. The addon automatically:
+   - Sends `200 OK` immediately upon receipt (per Paystack docs)
+   - Verifies the request signature using HMAC SHA-512
+   - Validates the request originates from Paystack's official IPs
 
 **Paystack Webhook IPs (whitelisted automatically):**
 ```
@@ -68,27 +83,62 @@ The addon handles signature verification, IP whitelisting, and instant acknowled
 52.31.139.75
 ```
 
+**Webhook Events Handled:**
+| Event | Action |
+|---|---|
+| `charge.success` | Fulfills the purchase in XenForo |
+| All other events | Acknowledged with `200 OK`, logged as info, no action taken |
+
+### 4. Callback URL
+The **Callback URL** (also shown in payment profile settings) is where Paystack redirects users after payment:
+```
+https://yoursite.com/payment_callback.php?_xfProvider=paystack
+```
+This is automatically passed to Paystack when initiating a transaction — no manual configuration needed.
+
+---
+
+## Payment Data Sent to Paystack
+
+The following product and customer information is sent with every transaction and is visible in your Paystack dashboard:
+
+| Field | Description |
+|---|---|
+| Product | Name of the item being purchased |
+| Amount | Cost and currency |
+| Username | XenForo username of the buyer |
+| User ID | XenForo user ID of the buyer |
+| Site | Your forum board title |
+| cancel_action | Redirects user to your site if they cancel on Paystack checkout |
+
+---
+
+## Viewing Payment Logs
+
+1. Go to **Admin CP > Setup > Payment profiles**
+2. Click on your Paystack profile
+3. Click **View log** to see all transaction records including:
+   - Successful payments (redirect and webhook)
+   - Signature verification failures
+   - Amount/currency mismatches
+   - Webhook event acknowledgements
+
 ---
 
 ## Testing
 
-Enable **Test Mode** in the payment profile, enter your test keys, and use Paystack's test card:
-
-- **Card:** `4084 0840 8408 4081`
-- **Expiry:** Any future date
-- **CVV:** Any 3 digits
-
----
-
-## Documentation
-
-Full documentation is available in [`addons/TheophilusA/Paystack/README.md`](addons/TheophilusA/Paystack/README.md).
+1. Enable **Test Mode** in the payment profile
+2. Enter your test API keys (`sk_test_...` and `pk_test_...`)
+3. Use Paystack's test card: **4084 0840 8408 4081** (any future date, any CVV)
+4. Complete a test purchase on your forum
+5. Verify the log shows **"Payment received successfully"**
+6. Disable Test Mode and switch to live keys when ready for production
 
 ---
 
 ## Support
 
-For support and enquiries: [theophilusadegbohungbe.com](https://theophilusadegbohungbe.com)
+For support and enquiries, visit: [theophilusadegbohungbe.com](https://theophilusadegbohungbe.com)
 
 ---
 
