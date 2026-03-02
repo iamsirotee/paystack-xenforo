@@ -1,0 +1,13 @@
+{
+    "legacy_addon_id": "TheophilusA/Paystack",
+    "title": "Paystack Payment Gateway",
+    "description": "Accept payments through Paystack for XenForo. Developed by Theophilus Adegbohungbe (theophilusadegbohungbe.com).",
+    "version_id": 1000010,
+    "version_string": "1.0.0",
+    "icon": "paystack.png",
+    "dev": "Theophilus Adegbohungbe",
+    "dev_url": "https://theophilusadegbohungbe.com",
+    "faq_url": "https://theophilusadegbohungbe.com",
+    "support_url": "https://theophilusadegbohungbe.com",
+    "extra_urls": {}
+}
