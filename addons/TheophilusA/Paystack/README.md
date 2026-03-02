@@ -149,14 +149,6 @@ For support and enquiries, visit: [theophilusadegbohungbe.com](https://theophilu
 
 ---
 
-## License
-
-Copyright (c) 2026 Theophilus Adegbohungbe. All rights reserved.
-
-This addon is proprietary software. Unauthorized redistribution, resale, modification, or use without explicit written permission from the author is strictly prohibited.
-
----
-
 ## Version History
 
 | Version | Notes |
